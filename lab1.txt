@@ -1,0 +1,40 @@
+#!/bin/bash
+# title		:lab1.sh (submitted as lab1.txt, will be run as .sh file when tested)
+# description 	:This script will parse file1.txt, send its base64 decoded data to a temporary file, 
+#		 parse the decoded data for specific line numbers including specific string lines,
+#		 remove anything that comes before and including the first sought out string
+#		 remove anything that comes after and including the second sought out string,
+#		 sends the resulting data to a new output file, and then stout's to the user the
+#		 md5 and sha1 hashed data.
+# author	:Sarah Higgins
+# date		:January 25th, 2019
+# notes		:file1.txt will be the text file this script operates on, it is already
+#		 saved in the testing working directory.
+# bash_version	:4.4.19(1)-release (x86_64-pc-linux-gnu)
+# ===================================================================================================================
+
+# sanity check to verify working system includes bash
+if test -z "$BASH" ; then
+	printf "$SCRIPT:$LINENO: please execute script with BASH shell\n"
+	exit 192
+fi
+
+# send decoded data to temporary file
+base64 -d file1.txt >> temp.txt
+# assign variables to the line numbers of the decoded temporary file
+startOfProject=$(grep -n "*** START OF THIS PROJECT GUTENBERG EBOOK A STUDY IN SCARLET ***" temp.txt | cut -d : -f1)
+endOfProject=$(grep -n "*** END OF THIS PROJECT GUTENBERG EBOOK A STUDY IN SCARLET ***" temp.txt | cut -d : -f1)
+# use arithmetic expression to move down one line to remove "*** START OF PROJECT..." 
+# and "*** END OF PROJECT..." lines from output
+newStartToProject=$(($startOfProject+1))
+newEndToProject=$(($endOfProject-$newStartToProject))
+# pass $newStartToProject and $newEndToProject variables to commands tail and head to 
+# find the tail of the project by starting at line $newStartToProject, and by only 
+# including the $newEndToProject head of the remaining data from the decoded temporary file.
+# Send the remaining data to new file output.txt
+tail +$newStartToProject temp.txt | head -n $newEndToProject > output.txt
+# obtain both the md5 and sha1 hash of output.txt
+md5sum output.txt
+sha1sum output.txt
+rm temp.txt
+exit
